@@ -1,5 +1,5 @@
 import { Repository } from "typeorm";
-import { Product } from "./product.entity";
+import { Product } from "./guest-check.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { CreateProductDto } from "./dto/create-product";
