@@ -10,7 +10,7 @@ export class GuestCheckService {
     
     constructor(
         @InjectRepository(GuestCheck)
-        private readonly GuestCheckRepository: Repository<GuestCheck>,
+        private readonly guestCheckRepository: Repository<GuestCheck>,
 
         @InjectRepository(Spot)
         private readonly spotRepository: Repository <Spot>
@@ -32,7 +32,7 @@ export class GuestCheckService {
         }
 
         // Regra #2: Não se abre comanda em mesa com comanda aberta.
-        const opened = await this.GuestCheckRepository.exists({
+        const opened = await this.guestCheckRepository.exists({
             where: { spot : { id: dto.spotId}, status: GuestCheckStatus.OPENED}
         });
         if (opened) {
@@ -40,16 +40,16 @@ export class GuestCheckService {
         }
 
         // Se chegou aqui deu certo, vai gravar o registro
-        const GuestCheck = this.GuestCheckRepository.create({
+        const GuestCheck = this.guestCheckRepository.create({
             spot,
             status: GuestCheckStatus.OPENED
         })
 
-        return this.GuestCheckRepository.save(GuestCheck)
+        return this.guestCheckRepository.save(GuestCheck)
     }
 
     async findOne(id: string): Promise<GuestCheck>{
-            const GuestCheck = await this.GuestCheckRepository.findOneBy({ id })    
+            const GuestCheck = await this.guestCheckRepository.findOneBy({ id })    
     
             if(!GuestCheck) {
                 throw new NotFoundException('Comanda não encontrada!');
@@ -72,9 +72,29 @@ export class GuestCheckService {
         // Se chegou aqui deu certo!
         guestCheck.status = GuestCheckStatus.CLOSED;
 
-        return this.GuestCheckRepository.save(guestCheck);
+        return this.guestCheckRepository.save(guestCheck);
+        // Talvez deveria ser guestCheckRepository com o g minusculo entao 1 variavel
     }
 
+    findOpenedBySpotId(spotId: string): Promise <GuestCheck | null> {
+        return this.guestCheckRepository.findOne({
+            where: {
+                spot: {id: spotId},
+                status: GuestCheckStatus.OPENED
+            },
+            relations: {spot: true}
+        })
+    }
+
+    async findOrCreateOpened(spotId: string): Promise<GuestCheck> {
+        const opened = await this.findOpenedBySpotId(spotId);
+
+        if (opened) {
+            return opened;
+        }
+
+        return this.create({ spotId })
+    }
     
 
 }
