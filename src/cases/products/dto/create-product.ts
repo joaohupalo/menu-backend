@@ -1,4 +1,4 @@
-import { IsBoolean, IsNotEmpty, IsNumber, isNumber, IsOptional, IsString, IsUrl, IsUUID, MaxLength, Min } from "class-validator";
+import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString, IsUrl, IsUUID, MaxLength, Min } from "class-validator";
 
 export class CreateProductDto{
     @IsString()
@@ -16,7 +16,7 @@ export class CreateProductDto{
 
     @IsOptional()
     @IsUUID()
-    categoryID?: string
+    categoryId?: string;
 
     @IsOptional()
     @IsBoolean()
@@ -25,4 +25,12 @@ export class CreateProductDto{
     @IsOptional()
     @IsUrl({ require_protocol: true})
     picture?: string;
+
+    @IsOptional()
+    @IsBoolean()
+    vegetarian?: boolean;
+
+    @IsOptional()
+    @IsBoolean()
+    isNew?: boolean;
 }

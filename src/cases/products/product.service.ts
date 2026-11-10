@@ -18,8 +18,10 @@ export class ProductService {
         
     }
 
-    findAll(): Promise<Product[]>{
+    // Se receber categoryId, devolve só os produtos daquela categoria
+    findAll(categoryId?: string): Promise<Product[]>{
         return this.productRepository.find({
+            where: categoryId ? { category: { id: categoryId } } : {},
             order: {name: 'ASC'},
             relations: {category: true}
         });
@@ -40,14 +42,16 @@ export class ProductService {
 
     async create(dto: CreateProductDto): Promise<Product> {
 
-        const category = dto.categoryID ? await this.getActiveCategory(dto.categoryID): null;
+        const category = dto.categoryId ? await this.getActiveCategory(dto.categoryId): null;
 
         const product = this.productRepository.create({
             name: dto.name.trim(),
             description: dto.description,
             price: dto.price, 
             picture: dto.picture,
-            active: true,
+            active: dto.active ?? true,
+            vegetarian: dto.vegetarian ?? false,
+            isNew: dto.isNew ?? false,
             category: category
         });
 
@@ -79,8 +83,16 @@ export class ProductService {
             product.picture = dto.picture;
         }
 
-        if (dto.categoryID !== undefined) {
-        product.category = dto.categoryID ? await this.getActiveCategory(dto.categoryID): null;
+        if (dto.vegetarian !== undefined) {
+            product.vegetarian = dto.vegetarian;
+        }
+
+        if (dto.isNew !== undefined) {
+            product.isNew = dto.isNew;
+        }
+
+        if (dto.categoryId !== undefined) {
+        product.category = dto.categoryId ? await this.getActiveCategory(dto.categoryId): null;
         }
 
         return this.productRepository.save(product);

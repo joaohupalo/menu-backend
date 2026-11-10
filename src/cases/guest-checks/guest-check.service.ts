@@ -1,5 +1,8 @@
 import { Repository } from "typeorm";
 import { GuestCheck, GuestCheckStatus } from "./guest-check.entity";
+
+// Comanda como é devolvida para o front: com o total acumulado e sem a lista de pedidos
+export type GuestCheckWithTotal = Omit<GuestCheck, 'orders'> & { total: number };
 import { InjectRepository } from "@nestjs/typeorm";
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { CreateGuestCheckDto } from "./dto/create-guest-check";
@@ -40,22 +43,22 @@ export class GuestCheckService {
         }
 
         // Se chegou aqui deu certo, vai gravar o registro
-        const GuestCheck = this.guestCheckRepository.create({
+        const guestCheck = this.guestCheckRepository.create({
             spot,
             status: GuestCheckStatus.OPENED
         })
 
-        return this.guestCheckRepository.save(GuestCheck)
+        return this.guestCheckRepository.save(guestCheck)
     }
 
     async findOne(id: string): Promise<GuestCheck>{
-            const GuestCheck = await this.guestCheckRepository.findOneBy({ id })    
+            const guestCheck = await this.guestCheckRepository.findOneBy({ id })    
     
-            if(!GuestCheck) {
+            if(!guestCheck) {
                 throw new NotFoundException('Comanda não encontrada!');
             }
     
-            return GuestCheck;
+            return guestCheck;
         }
 
     async close(id: string): Promise<GuestCheck> {
@@ -74,6 +77,40 @@ export class GuestCheckService {
 
         return this.guestCheckRepository.save(guestCheck);
         // Talvez deveria ser guestCheckRepository com o g minusculo entao 1 variavel
+    }
+
+    // GET /guest-checks  ou  GET /guest-checks?status=OPENED
+    async findAll(status?: GuestCheckStatus): Promise<GuestCheckWithTotal[]> {
+        const guestChecks = await this.guestCheckRepository.find({
+            where: status ? { status } : {},
+            relations: { spot: true, orders: true },
+            order: { createdAt: 'ASC' }
+        });
+
+        return guestChecks.map((guestCheck) => this.withTotal(guestCheck));
+    }
+
+    // GET /guest-checks/:id  ->  comanda com a mesa e o total
+    async findDetail(id: string): Promise<GuestCheckWithTotal> {
+        const guestCheck = await this.guestCheckRepository.findOne({
+            where: { id },
+            relations: { spot: true, orders: true }
+        });
+
+        if (!guestCheck) {
+            throw new NotFoundException('Comanda não encontrada!');
+        }
+
+        return this.withTotal(guestCheck);
+    }
+
+    // Soma o total de todos os pedidos da comanda.
+    // O Postgres devolve "numeric" como texto, por isso o Number().
+    private withTotal(guestCheck: GuestCheck): GuestCheckWithTotal {
+        const { orders, ...rest } = guestCheck;
+        const total = orders.reduce((sum, order) => sum + Number(order.total), 0);
+
+        return { ...rest, total: Math.round(total * 100) / 100 };
     }
 
     findOpenedBySpotId(spotId: string): Promise <GuestCheck | null> {

@@ -16,7 +16,7 @@ export class CategoryService {
 
     findAll(): Promise<Category[]>{
         return this.categoryRepository.find({
-            order: {name: 'ASC'}
+            order: { displayOrder: 'ASC', name: 'ASC' }
         });
     }
 
@@ -33,9 +33,10 @@ export class CategoryService {
     create(dto: CreateCategoryDto): Promise<Category> {
 
         const category = this.categoryRepository.create({
-            ...dto,
-            name: dto.name,
-            active: true 
+            name: dto.name.trim(),
+            icon: dto.icon,
+            displayOrder: dto.displayOrder ?? 0,
+            active: dto.active ?? true
         });
 
         return this.categoryRepository.save(category);
@@ -47,6 +48,14 @@ export class CategoryService {
 
         if (dto.name !== undefined) {
             category.name = dto.name;
+        }
+
+        if (dto.icon !== undefined) {
+            category.icon = dto.icon;
+        }
+
+        if (dto.displayOrder !== undefined) {
+            category.displayOrder = dto.displayOrder;
         }
 
         if (dto.active !== undefined) {

@@ -24,7 +24,7 @@ import { OrderModule } from './cases/orders/order.module';
           type: 'postgres',
           url: databaseUrl,
           schema: databaseSchema,
-          autoloadEntities: true,
+          autoLoadEntities: true,
           synchronize: true,
           
         }

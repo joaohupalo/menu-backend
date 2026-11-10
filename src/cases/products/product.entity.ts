@@ -21,7 +21,14 @@ export class Product {
     @Column({ type: 'text', nullable: true})
     picture?: string;
 
-    @ManyToOne(()=> Category,{nullable: true } )
+    @Column({ type: 'boolean', default: false })
+    vegetarian: boolean;
+
+    // "Novidade" no cardápio
+    @Column({ name: 'is_new', type: 'boolean', default: false })
+    isNew: boolean;
+
+    @ManyToOne(()=> Category, { nullable: true, onDelete: 'SET NULL' })
     @JoinColumn({name: 'category_id' })
     category: Category | null;
 }

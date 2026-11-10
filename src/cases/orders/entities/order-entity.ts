@@ -6,7 +6,7 @@ export enum OrderStatus {
     NEW = 'NEW',
     PREPARING = 'PREPARING',
     READY = 'READY',
-    DELIVERY = 'DELIVERY'
+    DELIVERED = 'DELIVERED'
 }
 
 @Entity()
@@ -17,7 +17,7 @@ export class Order {
     @CreateDateColumn({ name: 'created_at'})
     createdAt: Date;
 
-    @ManyToOne(() => GuestCheck, {nullable: false})
+    @ManyToOne(() => GuestCheck, (guestCheck) => guestCheck.orders, {nullable: false})
     @JoinColumn({name: 'guest_check_id'})
     guestCheck: GuestCheck;
 
